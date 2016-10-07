@@ -24,6 +24,7 @@ public:
 
 	int mColumns, mRows, mWidth, mHeight, numTiles;
 	float tileWidth, tileHeight;
+	float diffusionRate = .01;
 	sf::RenderWindow *mWindow;
 
 	CellGrid(int columns, int rows, int width, int height)
@@ -38,19 +39,32 @@ public:
 	}
 
 	Cell * cellGrid;
+	Cell * cellGridBuffer;
 
 	void init() {
 		int nElements = mColumns * mRows;
 		cellGrid = new Cell[nElements];
+		cellGridBuffer = new Cell[nElements];
 		for (int i = 0; i < nElements; i++) {
 			float oxygenLevel = (255.0 / (float)nElements) * i;
 			cellGrid[i].set_oxygen(oxygenLevel);
 		}
 	}
 
+	void swapCellGrids() {
+		Cell * tempCellGrid = cellGrid;
+		cellGrid = cellGridBuffer;
+		cellGridBuffer = tempCellGrid;
+	}
+
 	Cell * byCoords(int x, int y) {
-		int idx = x + y * mRows;
+		int idx = x + y * mColumns;
 		return &cellGrid[idx];
+	}
+
+	Cell * bufferByCoords(int x, int y) {
+		int idx = x + y * mColumns;
+		return &cellGridBuffer[idx];
 	}
 
 	void attachWindow(sf::RenderWindow * window) {
@@ -84,11 +98,12 @@ public:
 
 		std::cout << "row: " << r << "column: " << c << std::endl;
 
-		std::cout << byCoords(c, r)->oxygen << std::endl;
+		//std::cout << byCoords(c, r)->oxygen << std::endl;
 
-		byCoords(c, r)->oxygen += 30.0;
+		//byCoords(c, r)->oxygen += 100.0;
+		cellGrid[idx].oxygen += 100.0;
 
-		std::cout << byCoords(c, r)->oxygen << std::endl << std::endl;
+		//std::cout << byCoords(c, r)->oxygen << std::endl << std::endl;
 	}
 
 	void render() {
@@ -121,6 +136,59 @@ public:
 		mWindow->display();
 	}
 
+	float doDiffusionCalc(int c, int r, int dc, int dr) {
+		Cell * thisCell = byCoords(c, r);
+		Cell * thisCellBuffer = bufferByCoords(c, r);
+		Cell * neighborCell = byCoords(c + dc, r + dr);
+		Cell * neighborCellBuffer = byCoords(c + dc, r + dr);
+
+		float thisOxygen = thisCell->oxygen;
+		float neighborOxygen = neighborCell->oxygen;
+
+		float oxygenDifferance = thisOxygen - neighborOxygen;
+		float oxygenDelta = oxygenDifferance * diffusionRate;
+
+		return oxygenDelta;
+	}
+
+	void updateCellGrid() {
+		for (int i = 0; i < numTiles; i++)
+		{
+			int c = i % mColumns;
+			int r = i / mColumns;
+
+			Cell * thisCell = byCoords(c, r);
+			float oxygen = thisCell->oxygen;
+
+			Cell * thisBuffer = bufferByCoords(c, r);
+
+			if (c > 0)
+			{
+				oxygen -= doDiffusionCalc(c, r, -1, 0);
+			}
+
+			if (r > 0)
+			{
+				oxygen -= doDiffusionCalc(c, r, 0, -1);
+			}
+
+			if (c < mColumns - 1)
+			{
+				oxygen -= doDiffusionCalc(c, r, 1, 0);
+			}
+
+			if (r < mRows - 1)
+			{
+				oxygen -= doDiffusionCalc(c, r, 0, 1);
+			}
+
+			thisBuffer->oxygen = oxygen;
+
+		}
+
+		swapCellGrids();
+	}
+
 };
 
 CellGrid * makeCellGrid(int columns, int rows, int width, int height) {
@@ -145,6 +213,7 @@ int main()
 	{
 		Sleep(50);
 		cellGrid->handleEvents();
+		cellGrid->updateCellGrid();
 		cellGrid->render();	
 	}
 }
