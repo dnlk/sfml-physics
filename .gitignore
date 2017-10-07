@@ -35,4 +35,6 @@
 .vs
 */Debug/*
 Debug
-
+ipch
+*.sln
+*.VC*
