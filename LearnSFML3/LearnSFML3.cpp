@@ -90,17 +90,57 @@ int main() {
 	// int windowHeight = 300;
 	// int windowWidth = 450;
 	// int nColumns = 8;
-	// int nRows = 10;
+	// int nRows = 10
+
+	int nRows = 8;
+	int nColumns = 4;
+	int tileHeight = 50;
+	int tileWidth = 80;
+	int windowHeight = nRows * tileHeight;
+	int windowWidth = nColumns * tileWidth;
 
 	
-	TwoStateMachine<OxyCell, GridTopology, GamePhysics, RenderOxyCell> stateMachine;
+	TwoStateMachine<OxyCell, GridTopology, GamePhysics, RenderOxyCell> stateMachine((float)windowWidth, (float)windowHeight, nRows, nColumns);
 	
-	while (stateMachine.renderer->mWindow->isOpen())
+	sf::RenderWindow & window = *stateMachine.renderer->mWindow;
+
+	int x, y;
+	int tileX, tileY;
+
+	while (window.isOpen())
 	{
 		Sleep(50);
 
+		sf::Event event;
+
+		// while there are pending events...
+		while (window.pollEvent(event))
+		{
+			// check the type of the event...
+			switch (event.type)
+			{
+				
+			case sf::Event::MouseButtonPressed:
+				x = event.mouseButton.x;
+				y = event.mouseButton.y;
+				std::cout << "Left Mouse Pressed - x: " << x << ", y: " << y << std::endl;
+
+				tileX = x / tileWidth;
+				tileY = y / tileHeight;
+				std::cout << "Tile Pressed - x: " << tileX << ", y: " << tileY << std::endl;
+
+				stateMachine.
+
+				break;
+
+			default:
+				break;
+			}
+		}
+
 		stateMachine.update();
 		stateMachine.render();
+
 	}
 	
 }

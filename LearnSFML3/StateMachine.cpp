@@ -20,15 +20,18 @@ public:
 	PhysicsInterface * stateInterface;
 
 	int statePhase;
+	float width;
+	float height;
+	int nRows;
+	int nColumns;
 
-	TwoStateMachine()
+	TwoStateMachine(float windowHeight, float windowWidth, int nRows, int nColumns): height(height), width(width), nRows(nRows), nColumns(nColumns)
 	{
-		int nRows = 8;
-		int nColumns = 4;
+		
 
 		physics = new Physics;
 		stateInterface = new PhysicsInterface(physics);
-		renderer = new Render(300.0, 400.0, nColumns, nRows);
+		renderer = new Render(windowHeight, windowWidth, nColumns, nRows);
 		renderInterface = new RenderInterface(renderer);
 		topology = new Topology(stateInterface, renderInterface);
 		topology->setupGrid(nColumns, nRows);
